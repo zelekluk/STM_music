@@ -1,2 +1,14 @@
+# ide specific
+
+# stm cube ide
 .settings/
+STM_music Debug.launch
+
+# vs code
+.vscode/
+openocd.cfg
+STM32Make.make
+STM32-for-VSCode.config.yaml
+
+# common
 Debug/
