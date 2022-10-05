@@ -12,3 +12,4 @@ STM32-for-VSCode.config.yaml
 
 # common
 Debug/
+build/
