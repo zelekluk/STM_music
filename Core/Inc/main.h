@@ -57,10 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SD_CS_Pin GPIO_PIN_5
+#define SD_CS_GPIO_Port GPIOC
+#define LD4_Pin GPIO_PIN_12
+#define LD4_GPIO_Port GPIOD
 #define AUDIO_RST_Pin GPIO_PIN_4
 #define AUDIO_RST_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
-
+#define SD_SPI_HANDLE hspi1
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
