@@ -43,6 +43,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#include "mp3.h"
 #include <math.h>
 
 #define AUDIO_I2C_ADDR	0x94
