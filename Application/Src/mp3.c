@@ -7,12 +7,12 @@
 #include "main.h"
 
 
-__align(8) uint8_t Mp3DecodeBuf[DECODEBUFSIZE];
+uint8_t Mp3DecodeBuf[DECODEBUFSIZE];
 
 FIL Mp3File;
 mp3Info Mp3Info;
-uint8_t* Readptr;	//MP3½âÂë¶ÁÖ¸Õë
-int32_t ByteLeft;//buffer»¹Ê£ÓàµÄÓĞĞ§Êı¾İ
+uint8_t* Readptr;	//MP3ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+int32_t ByteLeft;//bufferï¿½ï¿½Ê£ï¿½ï¿½ï¿½ï¿½ï¿½Ğ§ï¿½ï¿½ï¿½ï¿½
 uint8_t	InitMp3InfoFlag;
 HMP3Decoder Mp3Decoder;
 uint32_t DmaBufSize;
@@ -45,7 +45,7 @@ uint8_t PlayMp3File(char* path)
 			break;
 		}
 		TagHead=(ID3V2_TagHead*)TempBuf; 
-		//µÃµ½MP3Êı¾İµÄ¿ªÊ¼Î»ÖÃ
+		//ï¿½Ãµï¿½MP3ï¿½ï¿½ï¿½İµÄ¿ï¿½Ê¼Î»ï¿½ï¿½
 		if(strncmp("ID3",(const char*)TagHead->id,3)==0)
 		{
 			Mp3Info.DataStart=((uint32_t)TagHead->size[0]<<21)|((uint32_t)TagHead->size[1]<<14)|((uint32_t)TagHead->size[2]<<7)|TagHead->size[3];
@@ -94,7 +94,7 @@ uint8_t PlayMp3File(char* path)
 		MP3FreeDecoder(Mp3Decoder);		
 		return res;
 	}
-	HAL_I2S_Transmit_DMA(&hi2s2,(uint16_t *)WaveFileBuf,DmaBufSize/2);
+	HAL_I2S_Transmit_DMA(&hi2s3,(uint16_t *)WaveFileBuf,DmaBufSize/2);
 	while(1)
 	{
 		if(EndFileFlag==0)
@@ -114,15 +114,15 @@ uint8_t PlayMp3File(char* path)
 		else
 		if(EndFileFlag==3)
 		{
-			HAL_I2S_DMAStop(&hi2s2);
-			//printf("sr=%d\r\n",hi2s2.Instance->SR);
-			//printf("cr2=%d\r\n",hi2s2.Instance->CR2);
-			//printf("cfgr=%d\r\n",hi2s2.Instance->I2SCFGR);
-			__HAL_I2S_ENABLE(&hi2s2);
-			res=I2S_WaitFlagStateUntilTimeout(&hi2s2, I2S_FLAG_BSY, SET, 20);
+			HAL_I2S_DMAStop(&hi2s3);
+			//printf("sr=%d\r\n",hi2s3.Instance->SR);
+			//printf("cr2=%d\r\n",hi2s3.Instance->CR2);
+			//printf("cfgr=%d\r\n",hi2s3.Instance->I2SCFGR);
+			__HAL_I2S_ENABLE(&hi2s3);
+			res=I2S_WaitFlagStateUntilTimeout(&hi2s3, I2S_FLAG_BSY, SET, 20);
 			//printf("res=%d\r\n",res);
-			__HAL_I2S_DISABLE(&hi2s2);
-			//printf("sr=%d\r\n",hi2s2.Instance->SR);
+			__HAL_I2S_DISABLE(&hi2s3);
+			//printf("sr=%d\r\n",hi2s3.Instance->SR);
 			break;
 		}
 	}
@@ -143,23 +143,23 @@ uint32_t FillMp3Buf(uint8_t *Buf)
 	uint16_t *Mp3Ptr;
 	MP3FrameInfo Mp3FrameInfo;
 	
-	Offset=MP3FindSyncWord(Readptr,ByteLeft);	//ÔÚreadptrÎ»ÖÃ,¿ªÊ¼²éÕÒÍ¬²½×Ö·û
-	if(Offset<0)															//Ã»ÓĞÕÒµ½Í¬²½×Ö·û,Ìø³öÖ¡½âÂëÑ­»·
+	Offset=MP3FindSyncWord(Readptr,ByteLeft);	//ï¿½ï¿½readptrÎ»ï¿½ï¿½,ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½Ö·ï¿½
+	if(Offset<0)															//Ã»ï¿½ï¿½ï¿½Òµï¿½Í¬ï¿½ï¿½ï¿½Ö·ï¿½,ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½
 	{ 
 		printf("Can not play the file!\r\n");
 		return 1;
 	}
-	Readptr+=Offset;													//MP3¶ÁÖ¸ÕëÆ«ÒÆµ½Í¬²½×Ö·û´¦.
-	ByteLeft-=Offset;													//bufferÀïÃæµÄÓĞĞ§Êı¾İ¸öÊı,±ØĞë¼õÈ¥Æ«ÒÆÁ¿
+	Readptr+=Offset;													//MP3ï¿½ï¿½Ö¸ï¿½ï¿½Æ«ï¿½Æµï¿½Í¬ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½.
+	ByteLeft-=Offset;													//bufferï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ§ï¿½ï¿½ï¿½İ¸ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½È¥Æ«ï¿½ï¿½ï¿½ï¿½
 	//printf("ByteLeft=%d\r\n",ByteLeft);
-	if(ByteLeft<MAINBUF_SIZE*2)//µ±Êı×éÄÚÈİĞ¡ÓÚ2±¶MAINBUF_SIZEµÄÊ±ºò,±ØĞë²¹³äĞÂµÄÊı¾İ½øÀ´.
+	if(ByteLeft<MAINBUF_SIZE*2)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½2ï¿½ï¿½MAINBUF_SIZEï¿½ï¿½Ê±ï¿½ï¿½,ï¿½ï¿½ï¿½ë²¹ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½İ½ï¿½ï¿½ï¿½.
 	{ 
-		memmove(TempBuf,Readptr,ByteLeft);//ÒÆ¶¯readptrËùÖ¸ÏòµÄÊı¾İµ½bufferÀïÃæ,Êı¾İÁ¿´óĞ¡Îª:bytesleft
+		memmove(TempBuf,Readptr,ByteLeft);//ï¿½Æ¶ï¿½readptrï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İµï¿½bufferï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¡Îª:bytesleft
 		/*
 		ReadBytesNum=WAVEFILEBUFSIZE-ByteLeft;
 		if(ReadBytesNum%2)
 			ReadBytesNum-=1;
-		f_read(&Mp3File,TempBuf+ByteLeft,ReadBytesNum,&br);//²¹³äÓàÏÂµÄÊı¾İ
+		f_read(&Mp3File,TempBuf+ByteLeft,ReadBytesNum,&br);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½
 		printf("rd=%d,br=%d\r\n",ReadBytesNum,br);
 		if(br<ReadBytesNum)
 		{
@@ -168,7 +168,7 @@ uint32_t FillMp3Buf(uint8_t *Buf)
 		}
 		ByteLeft=ByteLeft+ReadBytesNum; 
 		*/
-		f_read(&Mp3File,TempBuf+ByteLeft,WAVEFILEBUFSIZE-ByteLeft,&br);//²¹³äÓàÏÂµÄÊı¾İ
+		f_read(&Mp3File,TempBuf+ByteLeft,WAVEFILEBUFSIZE-ByteLeft,&br);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½
 		//printf("rd=%d,br=%d\r\n",WAVEFILEBUFSIZE-ByteLeft,br);
 		if(br<WAVEFILEBUFSIZE-ByteLeft)
 		{
@@ -178,7 +178,7 @@ uint32_t FillMp3Buf(uint8_t *Buf)
 		ByteLeft=WAVEFILEBUFSIZE; 
 		Readptr=TempBuf; 
 	} 
-	err=MP3Decode(Mp3Decoder,&Readptr,&ByteLeft,(int16_t*)Mp3DecodeBuf,0);//½âÂëÒ»Ö¡MP3Êı¾İ
+	err=MP3Decode(Mp3Decoder,&Readptr,&ByteLeft,(int16_t*)Mp3DecodeBuf,0);//ï¿½ï¿½ï¿½ï¿½Ò»Ö¡MP3ï¿½ï¿½ï¿½ï¿½
 	//printf("Decode error:%d\r\n",err);
 	if(err!=0)
 	{
@@ -188,7 +188,7 @@ uint32_t FillMp3Buf(uint8_t *Buf)
 	
 	if(InitMp3InfoFlag==0)
 	{
-		MP3GetLastFrameInfo(Mp3Decoder,&Mp3FrameInfo);	//µÃµ½¸Õ¸Õ½âÂëµÄMP3Ö¡ĞÅÏ¢
+		MP3GetLastFrameInfo(Mp3Decoder,&Mp3FrameInfo);	//ï¿½Ãµï¿½ï¿½Õ¸Õ½ï¿½ï¿½ï¿½ï¿½MP3Ö¡ï¿½ï¿½Ï¢
 		Mp3Info.bitsPerSample=Mp3FrameInfo.bitsPerSample;
 		Mp3Info.nChans=Mp3FrameInfo.nChans;
 		Mp3Info.OutSamples=Mp3FrameInfo.outputSamps;

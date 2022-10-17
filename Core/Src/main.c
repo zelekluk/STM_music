@@ -21,7 +21,7 @@
 #include "fatfs.h"
 #include "i2c.h"
 #include "i2s.h"
-#include "spi.h"
+#include "sdio.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -39,6 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#include "file_handling.h"
 #include "mp3.h"
 #include <math.h>
 
@@ -127,108 +128,32 @@ int main(void)
   MX_GPIO_Init();
   MX_I2S3_Init();
   MX_I2C1_Init();
-  MX_SPI1_Init();
   MX_FATFS_Init();
   MX_USART2_UART_Init();
+  MX_SDIO_SD_Init();
   /* USER CODE BEGIN 2 */
+  Ringbuf_init();  // init the ring buffer
 
-  // for (int i = 0; i < BUFFER_SIZE; i++) {
-	//   int16_t value = (int16_t)(32000.0 * sin(2.0 * M_PI * i / 22.0));
-	//   audio_data[i * 2] = value;
-	//   audio_data[i * 2 + 1] = value;
-  // }
 
-  // cs43l22_init();
-// begin
-    myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
+  int indx = 0;
+  uint8_t buffer[64];
+  mount_sd();
 
-    HAL_Delay(1000); //a short delay is important to let the SD card settle
+	//read_file("/example.mp3");
+  check_sd();
 
-    //some variables for FatFs
-    FATFS FatFs; 	//Fatfs handle
-    FIL fil; 		//File handle
-    FRESULT fres; //Result after operations
-
-    //Open the file system
-    fres = f_mount(&FatFs, "", 1); //1=mount now
-    if (fres != FR_OK) {
-    myprintf("f_mount error (%i)\r\n", fres);
-    while(1);
-    }
-
-    //Let's get some statistics from the SD card
-    DWORD free_clusters, free_sectors, total_sectors;
-
-    FATFS* getFreeFs;
-
-    fres = f_getfree("", &free_clusters, &getFreeFs);
-    if (fres != FR_OK) {
-    myprintf("f_getfree error (%i)\r\n", fres);
-    while(1);
-    }
-
-    //Formula comes from ChaN's documentation
-    total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
-    free_sectors = free_clusters * getFreeFs->csize;
-
-    myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
-
-    //Now let's try to open file "test.txt"
-    fres = f_open(&fil, "example.mp3", FA_READ);
-    if (fres != FR_OK) {
-    myprintf("f_open error (%i)\r\n");
-    while(1);
-    }
-    myprintf("I was able to open 'example.mp3' for reading!\r\n");
-
-    //Read 30 bytes from "test.txt" on the SD card
-    BYTE readBuf[300];
-
-    //We can either use f_read OR f_gets to get data out of files
-    //f_gets is a wrapper on f_read that does some string formatting for us
-    TCHAR* rres = f_gets((TCHAR*)readBuf, 300, &fil);
-    if(rres != 0) {
-    myprintf("Read string from 'example.mp3' contents: %s\r\n", readBuf);
-    } else {
-    myprintf("f_gets error (%i)\r\n", fres);
-    }
-
-    //Be a tidy kiwi - don't forget to close your file!
-    f_close(&fil);
-
-    //Now let's try and write a file "write.txt"
-    fres = f_open(&fil, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
-    if(fres == FR_OK) {
-    myprintf("I was able to open 'write.txt' for writing\r\n");
-    } else {
-    myprintf("f_open error (%i)\r\n", fres);
-    }
-
-    //Copy in a string
-    strncpy((char*)readBuf, "a new file is made!", 19);
-    UINT bytesWrote;
-    fres = f_write(&fil, readBuf, 19, &bytesWrote);
-    if(fres == FR_OK) {
-    myprintf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
-    } else {
-    myprintf("f_write error (%i)\r\n");
-    }
-
-    //Be a tidy kiwi - don't forget to close your file!
-    f_close(&fil);
-
-    //We're done, so de-mount the drive
-    f_mount(NULL, "", 0);
-
+  unmount_sd();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //HAL_I2S_Transmit(&hi2s3, (uint16_t*)audio_data, 2 * BUFFER_SIZE, HAL_MAX_DELAY);
+
+
+	indx++;
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-    HAL_Delay(1000);
+    HAL_Delay(2000);
 
     /* USER CODE END WHILE */
 
@@ -261,7 +186,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 100;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
+  RCC_OscInitStruct.PLL.PLLQ = 5;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
