@@ -28,6 +28,9 @@ char path[PATH_SIZE];  // buffer to store path
 
 int i=0;
 
+#include "usbd_cdc_if.h" // Plik bedacy interfejsem uzytkownika do kontrolera USB
+
+
 int bufsize (char *buf)
 {
 	int i=0;
@@ -47,10 +50,11 @@ void clear_path (void)
 
 void send_uart (char *string)
 {
-uint8_t len = strlen ((const char *) string);
-HAL_UART_Transmit(&huart2, (uint8_t *) string, len, 2000);
+	uint8_t len = strlen ((const char *) string);
+	//HAL_UART_Transmit(&huart2, (uint8_t *) string, len, 2000);
+	CDC_Transmit_FS((uint8_t *) string, len);
 	//Uart_sendstring(string);
-	clear_buffer();
+	//clear_buffer();
 }
 
 int cmdlength (char *str)
