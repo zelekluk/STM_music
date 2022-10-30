@@ -60,6 +60,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LD4_Pin GPIO_PIN_12
 #define LD4_GPIO_Port GPIOD
+#define LD3_Pin GPIO_PIN_13
+#define LD3_GPIO_Port GPIOD
 #define SDIO_CD_Pin GPIO_PIN_8
 #define SDIO_CD_GPIO_Port GPIOA
 #define AUDIO_RST_Pin GPIO_PIN_4
