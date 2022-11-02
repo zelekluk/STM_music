@@ -139,9 +139,9 @@ int main(void)
 
   // cs43l22_init();
 // begin
-    myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
+    myprintf("\r\n~ SD card reading ~\r\n\r\n");
 
-    HAL_Delay(1000); //a short delay is important to let the SD card settle
+    HAL_Delay(2000); //a short delay is important to let the SD card settle
 
     //some variables for FatFs
     FATFS FatFs; 	//Fatfs handle
@@ -154,7 +154,7 @@ int main(void)
     myprintf("f_mount error (%i)\r\n", fres);
     while(1);
     }
-
+    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //Let's get some statistics from the SD card
     DWORD free_clusters, free_sectors, total_sectors;
 
@@ -173,12 +173,12 @@ int main(void)
     myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
 
     //Now let's try to open file "test.txt"
-    fres = f_open(&fil, "example.mp3", FA_READ);
+    fres = f_open(&fil, "example.wav", FA_READ);
     if (fres != FR_OK) {
     myprintf("f_open error (%i)\r\n");
     while(1);
     }
-    myprintf("I was able to open 'example.mp3' for reading!\r\n");
+    myprintf("I was able to open 'example.mav' for reading!\r\n");
 
     //Read 30 bytes from "test.txt" on the SD card
     BYTE readBuf[300];
@@ -187,7 +187,7 @@ int main(void)
     //f_gets is a wrapper on f_read that does some string formatting for us
     TCHAR* rres = f_gets((TCHAR*)readBuf, 300, &fil);
     if(rres != 0) {
-    myprintf("Read string from 'example.mp3' contents: %s\r\n", readBuf);
+    myprintf("Read string from 'example.wav' contents: %s\r\n", readBuf);
     } else {
     myprintf("f_gets error (%i)\r\n", fres);
     }
@@ -258,7 +258,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 100;
+  RCC_OscInitStruct.PLL.PLLN = 72;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -271,11 +271,11 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
