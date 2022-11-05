@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "fatfs.h"
 #include "i2c.h"
 #include "i2s.h"
 #include "spi.h"
@@ -30,6 +29,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h> //for va_list var arg functions
+
+
+#include "Audio.h"
+#include "mp3dec.h"
+#include "mp3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +59,14 @@ static int16_t audio_data[2 * BUFFER_SIZE];
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+//some variables for FatFs
+//static FIL                  file; TODO
+volatile int			    enum_done = 0;
+static volatile uint8_t     audio_is_playing = 0;
 
+/* just for test */
+extern float                cur_ratio;
+static uint16_t             cur_bpm = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,6 +77,184 @@ void myprintf(const char *fmt, ...);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// MP3
+
+static void AudioCallback(void) {
+    audio_is_playing = 0;
+}
+
+/* MP3 file read, provided to MP3 decoder */
+static uint32_t fd_fetch(void *parameter, uint8_t *buffer, uint32_t length) {
+    uint32_t read_bytes = 0;
+
+	//f_read((FIL *)parameter, (void *)buffer, length, &read_bytes); TODO
+    if (read_bytes <= 0) return 0;
+
+    return read_bytes;
+}
+
+/*
+ * bpm detect
+ */
+static void mp3_get_bpm(char* filename) {
+    struct mp3_decoder  *decoder;
+    uint16_t            bpm;
+
+	//if (FR_OK == f_open(&file, filename, FA_OPEN_EXISTING | FA_READ)) { TODO
+    if (1){
+		/* decode mp3 */
+
+        decoder = mp3_decoder_create();
+        if (decoder != NULL) {
+            decoder->fetch_data         = fd_fetch;
+            //decoder->fetch_parameter    = (void *)&file; TODO
+            decoder->output_cb          = NULL;     /* no need */
+
+            if ((bpm = mp3_bpm_detect_run(decoder)) > 0) {
+                cur_bpm = bpm;
+            }
+
+            /* delete decoder object */
+            mp3_decoder_delete(decoder);
+        }
+
+        /* Re-initialize and set volume to avoid noise */
+        InitializeAudio(Audio44100HzSettings);
+        SetAudioVolume(0);
+
+        /* reset the playing flag */
+        audio_is_playing = 0;
+
+        /* Close currently open file */
+        //f_close(&file); TODO
+    }
+}
+/*
+ * MP3 player
+ */
+
+static uint32_t mp3_callback(MP3FrameInfo *header,
+                             int16_t *buffer,
+                             uint32_t length) {
+    while (audio_is_playing == 1);
+
+    audio_is_playing = 1;
+    ProvideAudioBuffer(buffer, length);
+
+    return 0;
+}
+
+static void play_mp3(char* filename) {
+    struct mp3_decoder *decoder;
+
+	//if (FR_OK == f_open(&file, filename, FA_OPEN_EXISTING | FA_READ)) { TODO
+    if (1) {
+		/* Play mp3 */
+
+		InitializeAudio(Audio44100HzSettings);
+		SetAudioVolume(0xAF);
+		PlayAudioWithCallback(AudioCallback);
+
+        decoder = mp3_decoder_create();
+        if (decoder != NULL) {
+            decoder->fetch_data         = fd_fetch;
+            //decoder->fetch_parameter    = (void *)&file; TODO
+            decoder->output_cb          = mp3_callback;
+
+            //while (mp3_decoder_run(decoder) != -1);
+            while (mp3_decoder_run_pvc(decoder) != -1);
+
+            /* delete decoder object */
+            mp3_decoder_delete(decoder);
+        }
+
+        /* Re-initialize and set volume to avoid noise */
+        InitializeAudio(Audio44100HzSettings);
+        SetAudioVolume(0);
+
+        /* reset the playing flag */
+        audio_is_playing = 0;
+
+        /* Close currently open file */
+        //f_close(&file); TODO
+    }
+}
+
+
+/*
+ * play directory
+ */
+static const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if (!dot || dot == filename) return "";
+    return dot + 1;
+}
+
+// static FRESULT play_directory (const char* path, unsigned char seek) { TODO
+//	FRESULT     res;
+//	FILINFO     fno;
+//	DIR         dir;
+static void play_directory (const char* path, unsigned char seek) {
+
+    /* This function is assuming non-Unicode cfg. */
+	char        *fn;
+	char        buffer[200];
+#if _USE_LFN
+	static char lfn[_MAX_LFN + 1];
+
+	fno.lfname  = lfn;
+	fno.lfsize  = sizeof(lfn);
+#endif
+
+
+//	res = f_opendir(&dir, path); TODO
+//	if (res == FR_OK) {
+//		for (;;) {
+//            /* Read a directory item */
+//			res = f_readdir(&dir, &fno);
+//
+//            /* Break on error or end of dir */
+//			if (res != FR_OK || fno.fname[0] == 0) break;
+//
+//            /* Ignore dot entry */
+//			if (fno.fname[0] == '.') continue;
+//
+//        #if _USE_LFN
+//			fn = *fno.lfname ? fno.lfname : fno.fname;
+//        #else
+//			fn = fno.fname;
+//        #endif
+//			if (fno.fattrib & AM_DIR) {
+//                /* It is a directory */
+//
+//			} else {
+//                /* It is a file. */
+//				sprintf(buffer, "%s/%s", path, fn);
+//
+//				/* Check if it is an mp3 file */
+//				if (strcmp("mp3", get_filename_ext(buffer)) == 0) {
+//
+//					/* Skip "seek" number of mp3 files... */
+//					if (seek) {
+//						seek--;
+//						continue;
+//					}
+//
+//					//mp3_get_bpm(buffer);
+//					play_mp3(buffer);
+//				}
+//			}
+//		}
+//	}
+//
+//	return res;
+	sprintf(buffer, "example.mp3");
+	play_mp3(buffer);
+}
+
+
+// I2S
 
 #define AUDIO_I2C_ADDR	0x94
 
@@ -127,7 +316,6 @@ int main(void)
   MX_I2S3_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
-  MX_FATFS_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
@@ -138,86 +326,6 @@ int main(void)
   // }
 
   // cs43l22_init();
-// begin
-    myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
-
-    HAL_Delay(1000); //a short delay is important to let the SD card settle
-
-    //some variables for FatFs
-    FATFS FatFs; 	//Fatfs handle
-    FIL fil; 		//File handle
-    FRESULT fres; //Result after operations
-
-    //Open the file system
-    fres = f_mount(&FatFs, "", 1); //1=mount now
-    if (fres != FR_OK) {
-    myprintf("f_mount error (%i)\r\n", fres);
-    while(1);
-    }
-
-    //Let's get some statistics from the SD card
-    DWORD free_clusters, free_sectors, total_sectors;
-
-    FATFS* getFreeFs;
-
-    fres = f_getfree("", &free_clusters, &getFreeFs);
-    if (fres != FR_OK) {
-    myprintf("f_getfree error (%i)\r\n", fres);
-    while(1);
-    }
-
-    //Formula comes from ChaN's documentation
-    total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
-    free_sectors = free_clusters * getFreeFs->csize;
-
-    myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
-
-    //Now let's try to open file "test.txt"
-    fres = f_open(&fil, "example.mp3", FA_READ);
-    if (fres != FR_OK) {
-    myprintf("f_open error (%i)\r\n");
-    while(1);
-    }
-    myprintf("I was able to open 'example.mp3' for reading!\r\n");
-
-    //Read 30 bytes from "test.txt" on the SD card
-    BYTE readBuf[300];
-
-    //We can either use f_read OR f_gets to get data out of files
-    //f_gets is a wrapper on f_read that does some string formatting for us
-    TCHAR* rres = f_gets((TCHAR*)readBuf, 300, &fil);
-    if(rres != 0) {
-    myprintf("Read string from 'example.mp3' contents: %s\r\n", readBuf);
-    } else {
-    myprintf("f_gets error (%i)\r\n", fres);
-    }
-
-    //Be a tidy kiwi - don't forget to close your file!
-    f_close(&fil);
-
-    //Now let's try and write a file "write.txt"
-    fres = f_open(&fil, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
-    if(fres == FR_OK) {
-    myprintf("I was able to open 'write.txt' for writing\r\n");
-    } else {
-    myprintf("f_open error (%i)\r\n", fres);
-    }
-
-    //Copy in a string
-    strncpy((char*)readBuf, "a new file is made!", 19);
-    UINT bytesWrote;
-    fres = f_write(&fil, readBuf, 19, &bytesWrote);
-    if(fres == FR_OK) {
-    myprintf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
-    } else {
-    myprintf("f_write error (%i)\r\n");
-    }
-
-    //Be a tidy kiwi - don't forget to close your file!
-    f_close(&fil);
-
-    //We're done, so de-mount the drive
-    f_mount(NULL, "", 0);
 
   /* USER CODE END 2 */
 
@@ -225,9 +333,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (enum_done >= 2) {
+	  			enum_done = 0;
+	  			play_directory("", 0);
+	  		}
+	HAL_Delay(2000);
 	  //HAL_I2S_Transmit(&hi2s3, (uint16_t*)audio_data, 2 * BUFFER_SIZE, HAL_MAX_DELAY);
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-    HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 
@@ -258,7 +370,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 100;
+  RCC_OscInitStruct.PLL.PLLN = 72;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -273,9 +385,9 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
