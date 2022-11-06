@@ -34,11 +34,12 @@
 #include "Audio.h"
 #include "mp3dec.h"
 #include "mp3.h"
+#include "test_file.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+int mp3_buffer_counter = 0;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -73,11 +74,26 @@ static uint16_t             cur_bpm = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void myprintf(const char *fmt, ...);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// printf override
+
+// void send_char(char c)
+// {
+//   HAL_UART_Transmit(&huart2, (uint8_t*)c, 1, 1000);
+// }
+ 
+// int __io_putchar(int c)
+// {
+//     if (c=='\n')
+//       send_char('\r');
+//     send_char(c);
+//     return c;
+// }
 
 // MP3
 
@@ -89,11 +105,20 @@ static void AudioCallback(void) {
 static uint32_t fd_fetch(void *parameter, uint8_t *buffer, uint32_t length) {
     uint32_t read_bytes = 0;
 
+    static uint32_t r_bytes;
+    if(r_bytes < 96000){
+      memcpy(buffer, test_file[r_bytes], length);
+      r_bytes += length;
+      read_bytes = r_bytes;
+    } else return 0;
+    //read_bytes = r_bytes;
 	//f_read((FIL *)parameter, (void *)buffer, length, &read_bytes); TODO
+    
     if (read_bytes <= 0) return 0;
 
     return read_bytes;
 }
+
 
 /*
  * bpm detect
@@ -159,6 +184,7 @@ static void play_mp3(char* filename) {
 
         decoder = mp3_decoder_create();
         if (decoder != NULL) {
+          myprintf("dekoder utworzony\n");
             decoder->fetch_data         = fd_fetch;
             //decoder->fetch_parameter    = (void *)&file; TODO
             decoder->output_cb          = mp3_callback;
@@ -168,6 +194,7 @@ static void play_mp3(char* filename) {
 
             /* delete decoder object */
             mp3_decoder_delete(decoder);
+            myprintf("koniec mp3\n");
         }
 
         /* Re-initialize and set volume to avoid noise */
@@ -254,7 +281,7 @@ static void play_directory (const char* path, unsigned char seek) {
 	play_mp3(buffer);
 }
 
-
+// void myprintf(const char *fmt, ...) // debugging
 
 
 void myprintf(const char *fmt, ...) {
@@ -312,13 +339,14 @@ int main(void)
 
   // cs43l22_init();
 
+  myprintf("program started\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (enum_done >= 2) {
+	  if (1) {
 	  			enum_done = 0;
 	  			play_directory("", 0);
 	  		}
@@ -379,7 +407,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void _init(){}
+//void _init(){}
 // void _exit(){}
 // void _kill(){}
 // void _getpid(){}

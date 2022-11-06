@@ -66,11 +66,12 @@ void Error_Handler(void);
 #define AUDIO_RST_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 #define SD_SPI_HANDLE hspi1
-
+extern int mp3_buffer_counter;
 // types for bpm.h and bpm.c
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
+void myprintf(const char *fmt, ...);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

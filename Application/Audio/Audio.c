@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "play_i2s.h"
+#include "main.h"
 
 static void WriteRegister(uint8_t address, uint8_t value);
 static void StopAudioDMA();
@@ -181,7 +182,7 @@ void PlayAudioWithCallback(AudioCallbackFunction *callback) {
 //
 //	SPI3 ->CR2 |= SPI_CR2_TXDMAEN; // Enable I2S TX DMA request.
 //
-//	CallbackFunction = callback;
+	CallbackFunction = callback;
 }
 
 void ProvideAudioBuffer(void *samples, int numsamples) {
@@ -199,6 +200,8 @@ void ProvideAudioBuffer(void *samples, int numsamples) {
 //	DMA1_Stream7 ->FCR = DMA_SxFCR_DMDIS;
 //	DMA1_Stream7 ->CR |= DMA_SxCR_EN;
 	HAL_I2S_Transmit(&hi2s3, (uint16_t*)samples, numsamples, HAL_MAX_DELAY);
+	CallbackFunction();
+	myprintf("odtwarzam muzyke\n");
 }
 
 static void WriteRegister(uint8_t address, uint8_t value) {

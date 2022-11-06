@@ -24,6 +24,7 @@ set(C_SRCS
 	Application/Audio/fft.c
 	Application/Audio/mp3.c
 	Application/Audio/sonic.c
+	Application/Audio/play_i2s.c
 	Core/Src/dma.c
 	Core/Src/gpio.c
 	Core/Src/i2c.c
