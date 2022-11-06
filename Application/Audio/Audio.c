@@ -9,7 +9,7 @@ static void StopAudioDMA();
 static AudioCallbackFunction *CallbackFunction;
 
 void InitializeAudio(int plln, int pllr, int i2sdiv, int i2sodd) {
-	GPIO_InitTypeDef  GPIO_InitStructure;
+//	GPIO_InitTypeDef  GPIO_InitStructure;
 
 	// Intitialize state.
 	CallbackFunction = NULL;
@@ -143,94 +143,94 @@ void AudioOn() {
 }
 
 void AudioOff() {
-	WriteRegister(0x02, 0x01);
-	SPI3 ->I2SCFGR = 0;
+//	WriteRegister(0x02, 0x01);
+//	SPI3 ->I2SCFGR = 0;
 }
 
 void SetAudioVolume(int volume) {
-	WriteRegister(0x20, (volume + 0x19) & 0xff);
-	WriteRegister(0x21, (volume + 0x19) & 0xff);
+//	WriteRegister(0x20, (volume + 0x19) & 0xff);
+//	WriteRegister(0x21, (volume + 0x19) & 0xff);
 }
 
 void OutputAudioSample(int16_t sample) {
-	while (!(SPI3 ->SR & SPI_SR_TXE ))
-		;
-	SPI3 ->DR = sample;
+//	while (!(SPI3 ->SR & SPI_SR_TXE ))
+//		;
+//	SPI3 ->DR = sample;
 }
 
 void OutputAudioSampleWithoutBlocking(int16_t sample) {
-	SPI3 ->DR = sample;
+//	SPI3 ->DR = sample;
 }
 
 void StopAudio() {
-	StopAudioDMA();
-	SPI3 ->CR2 &= ~SPI_CR2_TXDMAEN; // Disable I2S TX DMA request.
-	NVIC_DisableIRQ(DMA1_Stream7_IRQn);
-	CallbackFunction = NULL;
+//	StopAudioDMA();
+//	SPI3 ->CR2 &= ~SPI_CR2_TXDMAEN; // Disable I2S TX DMA request.
+//	NVIC_DisableIRQ(DMA1_Stream7_IRQn);
+//	CallbackFunction = NULL;
 }
 
 void PlayAudioWithCallback(AudioCallbackFunction *callback) {
-	StopAudioDMA();
-
-	NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-	NVIC_SetPriority(DMA1_Stream7_IRQn, 4);
-
-	SPI3 ->CR2 |= SPI_CR2_TXDMAEN; // Enable I2S TX DMA request.
-
-	CallbackFunction = callback;
+//	StopAudioDMA();
+//
+//	NVIC_EnableIRQ(DMA1_Stream7_IRQn);
+//	NVIC_SetPriority(DMA1_Stream7_IRQn, 4);
+//
+//	SPI3 ->CR2 |= SPI_CR2_TXDMAEN; // Enable I2S TX DMA request.
+//
+//	CallbackFunction = callback;
 }
 
 void ProvideAudioBuffer(void *samples, int numsamples) {
 	// Configure DMA stream.
-	DMA1_Stream7 ->CR = (0 * DMA_SxCR_CHSEL_0 ) | // Channel 0
-			(1 * DMA_SxCR_PL_0 ) | // Priority 1
-			(1 * DMA_SxCR_PSIZE_0 ) | // PSIZE = 16 bit
-			(1 * DMA_SxCR_MSIZE_0 ) | // MSIZE = 16 bit
-			DMA_SxCR_MINC | // Increase memory address
-			(1 * DMA_SxCR_DIR_0 ) | // Memory to peripheral
-			DMA_SxCR_TCIE; // Transfer complete interrupt
-	DMA1_Stream7 ->NDTR = numsamples;
-	DMA1_Stream7 ->PAR = (uint32_t) &SPI3 ->DR;
-	DMA1_Stream7 ->M0AR = (uint32_t)samples;
-	DMA1_Stream7 ->FCR = DMA_SxFCR_DMDIS;
-	DMA1_Stream7 ->CR |= DMA_SxCR_EN;
+//	DMA1_Stream7 ->CR = (0 * DMA_SxCR_CHSEL_0 ) | // Channel 0
+//			(1 * DMA_SxCR_PL_0 ) | // Priority 1
+//			(1 * DMA_SxCR_PSIZE_0 ) | // PSIZE = 16 bit
+//			(1 * DMA_SxCR_MSIZE_0 ) | // MSIZE = 16 bit
+//			DMA_SxCR_MINC | // Increase memory address
+//			(1 * DMA_SxCR_DIR_0 ) | // Memory to peripheral
+//			DMA_SxCR_TCIE; // Transfer complete interrupt
+//	DMA1_Stream7 ->NDTR = numsamples;
+//	DMA1_Stream7 ->PAR = (uint32_t) &SPI3 ->DR;
+//	DMA1_Stream7 ->M0AR = (uint32_t)samples;
+//	DMA1_Stream7 ->FCR = DMA_SxFCR_DMDIS;
+//	DMA1_Stream7 ->CR |= DMA_SxCR_EN;
 }
 
 static void WriteRegister(uint8_t address, uint8_t value) {
-	while (I2C1 ->SR2 & I2C_SR2_BUSY )
-		;
-
-	I2C1 ->CR1 |= I2C_CR1_START; // Start the transfer sequence.
-	while (!(I2C1 ->SR1 & I2C_SR1_SB ))
-		; // Wait for start bit.
-
-	I2C1 ->DR = 0x94;
-	while (!(I2C1 ->SR1 & I2C_SR1_ADDR ))
-		; // Wait for master transmitter mode.
-	I2C1 ->SR2;
-
-	I2C1 ->DR = address; // Transmit the address to write to.
-	while (!(I2C1 ->SR1 & I2C_SR1_TXE ))
-		; // Wait for byte to move to shift register.
-
-	I2C1 ->DR = value; // Transmit the value.
-
-	while (!(I2C1 ->SR1 & I2C_SR1_BTF ))
-		; // Wait for all bytes to finish.
-	I2C1 ->CR1 |= I2C_CR1_STOP; // End the transfer sequence.
+//	while (I2C1 ->SR2 & I2C_SR2_BUSY )
+//		;
+//
+//	I2C1 ->CR1 |= I2C_CR1_START; // Start the transfer sequence.
+//	while (!(I2C1 ->SR1 & I2C_SR1_SB ))
+//		; // Wait for start bit.
+//
+//	I2C1 ->DR = 0x94;
+//	while (!(I2C1 ->SR1 & I2C_SR1_ADDR ))
+//		; // Wait for master transmitter mode.
+//	I2C1 ->SR2;
+//
+//	I2C1 ->DR = address; // Transmit the address to write to.
+//	while (!(I2C1 ->SR1 & I2C_SR1_TXE ))
+//		; // Wait for byte to move to shift register.
+//
+//	I2C1 ->DR = value; // Transmit the value.
+//
+//	while (!(I2C1 ->SR1 & I2C_SR1_BTF ))
+//		; // Wait for all bytes to finish.
+//	I2C1 ->CR1 |= I2C_CR1_STOP; // End the transfer sequence.
 }
 
 static void StopAudioDMA() {
-	DMA1_Stream7 ->CR &= ~DMA_SxCR_EN; // Disable DMA stream.
-	while (DMA1_Stream7 ->CR & DMA_SxCR_EN)
-		; // Wait for DMA stream to stop.
+//	DMA1_Stream7 ->CR &= ~DMA_SxCR_EN; // Disable DMA stream.
+//	while (DMA1_Stream7 ->CR & DMA_SxCR_EN)
+//		; // Wait for DMA stream to stop.
 }
 
 void DMA1_Stream7_IRQHandler() {
-	DMA1 ->HIFCR |= DMA_HIFCR_CTCIF7; // Clear interrupt flag.
-
-	if (CallbackFunction)
-		CallbackFunction();
+//	DMA1 ->HIFCR |= DMA_HIFCR_CTCIF7; // Clear interrupt flag.
+//
+//	if (CallbackFunction)
+//		CallbackFunction();
 }
 
 

@@ -5,7 +5,7 @@ set(CORE_FLAGS "-mcpu=cortex-m4 -mthumb")
 set(CORE_FLAGS "${CORE_FLAGS}")
 
 # Hardware float support
-set(CORE_FLAGS "${CORE_FLAGS} -mfpu=fpv4-sp-d16 -mfloat-abi=hard")
+set(CORE_FLAGS "${CORE_FLAGS} -mfpu=fpv4-sp-d16 -mfloat-abi=softfp")
 
 # Compiler flags specific for C++ files
 # -std - C++ standard: c++98, gnu++98, c++11, gnu++11, c++14, gnu++14
@@ -20,7 +20,7 @@ set(CXX_FLAGS "-std=c++14 -fno-rtti -fno-exceptions -fverbose-asm -MMD")
 # -O0 - optimization level: -O0, -O1, -O2, -O3, -Os
 # fverbose-asm - additional comments for generated assembler code
 # -MMD - create dependency files
-set(C_FLAGS "-std=gnu11 -g3 -O0 -ffunction-sections -fdata-sections -fverbose-asm -fstack-usage -MMD -MP --specs=nano.specs")
+set(C_FLAGS "-std=gnu99 -g3 -O3 -ffunction-sections -fdata-sections -fverbose-asm -fstack-usage  -mlittle-endian -mthumb-interwork -nostartfiles -fsingle-precision-constant -Wdouble-promotion -MMD -MP --specs=nano.specs")
 
 set(ASM_FLAGS "-x assembler-with-cpp")
 

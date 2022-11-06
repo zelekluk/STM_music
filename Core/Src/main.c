@@ -395,7 +395,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void _init(){}
+// void _exit(){}
+// void _kill(){}
+// void _getpid(){}
 /* USER CODE END 4 */
 
 /**
