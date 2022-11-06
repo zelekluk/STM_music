@@ -2,6 +2,7 @@
 #include "stm32f4xx.h"
 
 #include <stdlib.h>
+#include "play_i2s.h"
 
 static void WriteRegister(uint8_t address, uint8_t value);
 static void StopAudioDMA();
@@ -132,6 +133,7 @@ void InitializeAudio(int plln, int pllr, int i2sdiv, int i2sodd) {
 	SPI3 ->I2SCFGR = SPI_I2SCFGR_I2SMOD | SPI_I2SCFGR_I2SCFG_1
 			| SPI_I2SCFGR_I2SE; // Master transmitter, Phillips mode, 16 bit values, clock polarity low, enable.
 */
+	cs43l22_init();
 }
 
 void AudioOn() {
@@ -150,6 +152,8 @@ void AudioOff() {
 void SetAudioVolume(int volume) {
 //	WriteRegister(0x20, (volume + 0x19) & 0xff);
 //	WriteRegister(0x21, (volume + 0x19) & 0xff);
+	cs43l22_write(0x20, (volume + 0x19) & 0xff);
+	cs43l22_write(0x21, (volume + 0x19) & 0xff);
 }
 
 void OutputAudioSample(int16_t sample) {
@@ -194,6 +198,7 @@ void ProvideAudioBuffer(void *samples, int numsamples) {
 //	DMA1_Stream7 ->M0AR = (uint32_t)samples;
 //	DMA1_Stream7 ->FCR = DMA_SxFCR_DMDIS;
 //	DMA1_Stream7 ->CR |= DMA_SxCR_EN;
+	HAL_I2S_Transmit(&hi2s3, (uint16_t*)samples, numsamples, HAL_MAX_DELAY);
 }
 
 static void WriteRegister(uint8_t address, uint8_t value) {
