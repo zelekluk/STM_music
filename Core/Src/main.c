@@ -106,19 +106,31 @@ static uint32_t fd_fetch(void *parameter, uint8_t *buffer, uint32_t length) {
     uint32_t read_bytes = 0;
 
     static uint32_t r_bytes;
-    if(r_bytes < 96000){
-      memcpy(buffer, test_file[r_bytes], length);
+    if(r_bytes < sizeof(test_file)-length){
+      memcpy(buffer, test_file + r_bytes, length);
       r_bytes += length;
-      read_bytes = r_bytes;
-    } else return 0;
+      read_bytes = length;
+    } else
+    {
+
+        uint32_t bytes_left = sizeof(test_file)-r_bytes;
+        memcpy(buffer, test_file + r_bytes, bytes_left);
+        read_bytes = bytes_left;
+        r_bytes += bytes_left;
+
+    }
+    //myprintf("fetch length %d sizeof %d \n", length, read_bytes);
     //read_bytes = r_bytes;
-	//f_read((FIL *)parameter, (void *)buffer, length, &read_bytes); TODO
-    
-    if (read_bytes <= 0) return 0;
+    //f_read((FIL *)parameter, (void *)buffer, length, &read_bytes); TODO
+
+    if (read_bytes <= 0) {
+        r_bytes = 0;
+        read_bytes = 0;
+        return 0;
+    }
 
     return read_bytes;
 }
-
 
 /*
  * bpm detect
@@ -195,6 +207,7 @@ static void play_mp3(char* filename) {
             /* delete decoder object */
             mp3_decoder_delete(decoder);
             myprintf("koniec mp3\n");
+            mp3_buffer_counter = 0;
         }
 
         /* Re-initialize and set volume to avoid noise */
@@ -407,7 +420,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-//void _init(){}
+// void _init(){}
 // void _exit(){}
 // void _kill(){}
 // void _getpid(){}

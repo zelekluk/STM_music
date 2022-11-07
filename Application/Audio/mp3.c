@@ -91,6 +91,7 @@ int mp3_decoder_run_internal(struct mp3_decoder *decoder,
 
     if (decoder->read_ptr == NULL
         || decoder->bytes_left < 2 * MAINBUF_SIZE) {
+    	myprintf("mp3_decoder_run_internal  IF \n");
         if (mp3_decoder_fill_buffer(decoder) != 0) {
             return -1;
         }
