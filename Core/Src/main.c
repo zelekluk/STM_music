@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
@@ -81,6 +82,7 @@ static uint16_t             cur_bpm = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -341,7 +343,7 @@ static const char *get_filename_ext(const char *filename) {
     return dot + 1;
 }
 
- static FRESULT play_directory (const char* path, unsigned char seek) {
+FRESULT play_directory (const char* path, unsigned char seek) {
 	FRESULT     res;
 	FILINFO     fno;
 	DIR         dir;
@@ -460,22 +462,21 @@ int main(void)
   // }
 
 
-  myprintf("program started\n");
-  init_sd();
+  InitializePlayDirectory(play_directory);
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (1) {
-	  			enum_done = 0;
-	  			play_directory("", 0);
-	  		}
-	HAL_Delay(2000);
-	  //HAL_I2S_Transmit(&hi2s3, (uint16_t*)audio_data, 2 * BUFFER_SIZE, HAL_MAX_DELAY);
-    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -534,6 +535,27 @@ void SystemClock_Config(void)
 // void _kill(){}
 // void _getpid(){}
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
