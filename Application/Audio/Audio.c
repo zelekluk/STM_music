@@ -135,9 +135,19 @@ void InitializeAudio(int plln, int pllr, int i2sdiv, int i2sodd) {
 			| SPI_I2SCFGR_I2SE; // Master transmitter, Phillips mode, 16 bit values, clock polarity low, enable.
 */
 	cs43l22_init();
+
+	cs43l22_write(0x0a, 0x00); // Disable the analog soft ramp.
+	cs43l22_write(0x0e, 0x04); // Disable the digital soft ramp.
+
+	cs43l22_write(0x27, 0x00); // Disable the limiter attack level.
+	cs43l22_write(0x1f, 0x0f); // Adjust bass and treble levels.
+
+	cs43l22_write(0x1a, 0x0a); // Adjust PCM volume level.
+	cs43l22_write(0x1b, 0x0a);
 }
 
 void AudioOn() {
+	WriteRegister(0x02, 0x9e);
 	/*
 	WriteRegister(0x02, 0x9e);
 	SPI3 ->I2SCFGR = SPI_I2SCFGR_I2SMOD | SPI_I2SCFGR_I2SCFG_1
@@ -146,7 +156,7 @@ void AudioOn() {
 }
 
 void AudioOff() {
-//	WriteRegister(0x02, 0x01);
+	WriteRegister(0x02, 0x01);
 //	SPI3 ->I2SCFGR = 0;
 }
 
@@ -199,9 +209,8 @@ void ProvideAudioBuffer(void *samples, int numsamples) {
 //	DMA1_Stream7 ->M0AR = (uint32_t)samples;
 //	DMA1_Stream7 ->FCR = DMA_SxFCR_DMDIS;
 //	DMA1_Stream7 ->CR |= DMA_SxCR_EN;
-	HAL_I2S_Transmit(&hi2s3, (uint16_t*)samples, numsamples, HAL_MAX_DELAY);
-	CallbackFunction();
-	myprintf("odtwarzam muzyke\n");
+	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)samples, numsamples);
+	//myprintf("odtwarzam muzyke\n");
 }
 
 static void WriteRegister(uint8_t address, uint8_t value) {
@@ -234,11 +243,26 @@ static void StopAudioDMA() {
 //		; // Wait for DMA stream to stop.
 }
 
-void DMA1_Stream7_IRQHandler() {
-//	DMA1 ->HIFCR |= DMA_HIFCR_CTCIF7; // Clear interrupt flag.
-//
-//	if (CallbackFunction)
-//		CallbackFunction();
+//void DMA1_Stream7_IRQHandler() {
+////	DMA1 ->HIFCR |= DMA_HIFCR_CTCIF7; // Clear interrupt flag.
+////
+////	if (CallbackFunction)
+////		CallbackFunction();
+//}
+
+
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+
 }
+
+
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+
+	if (CallbackFunction)
+			CallbackFunction();
+}
+
 
 

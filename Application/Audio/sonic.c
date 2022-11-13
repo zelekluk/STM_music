@@ -415,7 +415,6 @@ int sonicReadShortFromStream(
 {
     int numSamples = stream->numOutputSamples;
     int remainingSamples = 0;
-
     if(numSamples == 0) {
 	return 0;
     }

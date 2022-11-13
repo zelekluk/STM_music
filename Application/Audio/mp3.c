@@ -58,7 +58,7 @@ volatile float              cur_ratio = 1;
 static int32_t mp3_decoder_fill_buffer(struct mp3_decoder *decoder) {
     uint32_t bytes_read;
     uint32_t bytes_to_read;
-    myprintf("bufor nr %d\n", ++mp3_buffer_counter);
+    //myprintf("bufor nr %d\n", ++mp3_buffer_counter);
     if (decoder->bytes_left > 0) {
         memmove(decoder->read_buffer, decoder->read_ptr, decoder->bytes_left);
     }
@@ -91,7 +91,7 @@ int mp3_decoder_run_internal(struct mp3_decoder *decoder,
 
     if (decoder->read_ptr == NULL
         || decoder->bytes_left < 2 * MAINBUF_SIZE) {
-    	myprintf("mp3_decoder_run_internal  IF \n");
+    	//myprintf("mp3_decoder_run_internal  IF \n");
         if (mp3_decoder_fill_buffer(decoder) != 0) {
             return -1;
         }
@@ -157,6 +157,7 @@ int mp3_decoder_run_internal(struct mp3_decoder *decoder,
                 }
                 outputSamps *= 2;
             }
+
         }
 
         return outputSamps;
@@ -261,6 +262,7 @@ reread:
         //myprintf("stream nie null\n");
         len = sonicReadShortFromStream(stream, &buffer[buf_pos],
                                        (MP3_DECODE_BUF_SZ - buf_pos) / cur_channel);
+
         if (len == (MP3_DECODE_BUF_SZ - buf_pos) / cur_channel) {
             /* call the callback funtion */
             decoder->output_cb(&decoder->frame_info, buffer, MP3_DECODE_BUF_SZ);
