@@ -28,6 +28,7 @@
 #endif
 #endif
 #include "sonic.h"
+#include "usart.h"
 
 struct sonicStreamStruct {
     short *inputBuffer;
@@ -55,22 +56,24 @@ struct sonicStreamStruct {
     int prevMinDiff;
 };
 
-/* Just used for debugging */
-/*
+///* Just used for debugging */
+///*
 void sonicMSG(char *format, ...)
 {
     char buffer[4096];
     va_list ap;
-    FILE *file;
+    //FILE *file;
 
     va_start(ap, format);
     vsprintf((char *)buffer, (char *)format, ap);
     va_end(ap);
-    file=fopen("/tmp/sonic.log", "a");
-    fprintf(file, "%s", buffer);
-    fclose(file);
+    //file=fopen("/tmp/sonic.log", "a");
+    //fprintf(file, "%s", buffer);
+    //fclose(file);
+    int len = strlen(buffer);
+    HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, -1);
 }
-*/
+//*/
 
 /* Scale the samples by the factor. */
 static void scaleSamples(
