@@ -72,6 +72,7 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
 void myprintf(const char *fmt, ...);
+typedef void PlayDirectoryFunction(void);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

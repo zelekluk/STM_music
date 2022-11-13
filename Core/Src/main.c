@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
@@ -50,9 +51,15 @@ int mp3_buffer_counter = 0;
 #include <math.h>
 
 #define AUDIO_I2C_ADDR	0x94
-#define BUFFER_SIZE		2200
+#define BUFFER_SIZE		4096
 
-//static int16_t audio_data[2 * BUFFER_SIZE];
+static uint8_t audio_data[2 * BUFFER_SIZE];
+static uint8_t output_audio_data[2 * BUFFER_SIZE];
+//some variables for FatFs
+FATFS FatFs; 	//Fatfs handle
+FIL fil; 		//File handle
+FRESULT fres; //Result after operations
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,24 +78,100 @@ static volatile uint8_t     audio_is_playing = 0;
 /* just for test */
 extern float                cur_ratio;
 static uint16_t             cur_bpm = 0;
-
-//#define MP3_BUFFER_MAX_SIZE 10000
-//BYTE readBuf[MP3_BUFFER_MAX_SIZE];
-//uint32_t read_bytes = 0;
-
-//some variables for FatFs
-FATFS FatFs; 	//Fatfs handle
-FRESULT fres; //Result after operations
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void init_sd(){
+	myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
+
+	  HAL_Delay(1000); //a short delay is important to let the SD card settle
+
+
+
+	  //Open the file system
+	  fres = f_mount(&FatFs, "", 1); //1=mount now
+	  if (fres != FR_OK) {
+		myprintf("f_mount error (%i)\r\n", fres);
+		while(1);
+	  }
+
+	  //Let's get some statistics from the SD card
+	  DWORD free_clusters, free_sectors, total_sectors;
+
+	  FATFS* getFreeFs;
+
+	  fres = f_getfree("", &free_clusters, &getFreeFs);
+	  if (fres != FR_OK) {
+		myprintf("f_getfree error (%i)\r\n", fres);
+		while(1);
+	  }
+
+	  //Formula comes from ChaN's documentation
+	  total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
+	  free_sectors = free_clusters * getFreeFs->csize;
+
+	  myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
+
+//	  //Now let's try to open file "test.txt"
+//	  fres = f_open(&fil, "test.txt", FA_READ);
+//	  if (fres != FR_OK) {
+//		myprintf("f_open error (%i)\r\n");
+//		while(1);
+//	  }
+//	  myprintf("I was able to open 'test.txt' for reading!\r\n");
+//
+//	  //Read 30 bytes from "test.txt" on the SD card
+//	  BYTE readBuf[30];
+//
+//	  //We can either use f_read OR f_gets to get data out of files
+//	  //f_gets is a wrapper on f_read that does some string formatting for us
+//	  TCHAR* rres = f_gets((TCHAR*)readBuf, 30, &fil);
+//	  if(rres != 0) {
+//		myprintf("Read string from 'test.txt' contents: %s\r\n", readBuf);
+//	  } else {
+//		myprintf("f_gets error (%i)\r\n", fres);
+//	  }
+//
+//	  //Be a tidy kiwi - don't forget to close your file!
+//	  f_close(&fil);
+//
+//	  //Now let's try and write a file "write.txt"
+//	  fres = f_open(&fil, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+//	  if(fres == FR_OK) {
+//		myprintf("I was able to open 'write.txt' for writing\r\n");
+//	  } else {
+//		myprintf("f_open error (%i)\r\n", fres);
+//	  }
+//
+//	  //Copy in a string
+//	  strncpy((char*)readBuf, "a new file is made!", 19);
+//	  UINT bytesWrote;
+//	  fres = f_write(&fil, readBuf, 19, &bytesWrote);
+//	  if(fres == FR_OK) {
+//		myprintf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
+//	  } else {
+//		myprintf("f_write error (%i)\r\n");
+//	  }
+//
+//	  //Be a tidy kiwi - don't forget to close your file!
+//	  f_close(&fil);
+
+
+}
+
+void deinit_sd(){
+	  //We're done, so de-mount the drive
+	  f_mount(NULL, "", 0);
+}
 
 // printf override
 
@@ -129,7 +212,7 @@ static void AudioCallback(void) {
 //        r_bytes += bytes_left;
 //
 //    }
-//    myprintf("fetch length %d sizeof %d \n", length, read_bytes);
+//    //myprintf("fetch length %d sizeof %d \n", length, read_bytes);
 //    //read_bytes = r_bytes;
 //    //f_read((FIL *)parameter, (void *)buffer, length, &read_bytes); TODO
 //
@@ -141,14 +224,23 @@ static void AudioCallback(void) {
 //
 //    return read_bytes;
 //}
+//static uint32_t fd_fetch(void *parameter, uint8_t *buffer, uint32_t length) {
+//	uint32_t read_bytes = 0;
+//
+//	f_read((FIL *)parameter, buffer, length, (UINT*)&read_bytes);
+//    if (read_bytes <= 0) return 0;
+//
+//    return read_bytes;
+//}
+
 static uint32_t fd_fetch(void *parameter, uint8_t *buffer, uint32_t length) {
-    uint32_t read_bytes = 0;
+	uint32_t read_bytes = 0;
 
-	f_read((FIL *)parameter, (void *)buffer, length, &read_bytes);
-    myprintf("fetch length %d sizeof %d \n", length, read_bytes);
-    if (read_bytes <= 0) return 0;
+	f_read((FIL *)parameter, (void *)audio_data, length, (UINT*)&read_bytes);
+	memcpy(buffer, audio_data, read_bytes);
+	    if (read_bytes <= 0) return 0;
 
-    return read_bytes;
+	    return read_bytes;
 }
 
 /*
@@ -159,7 +251,6 @@ static void mp3_get_bpm(char* filename) {
     uint16_t            bpm;
 
 	if (FR_OK == f_open(&file, filename, FA_OPEN_EXISTING | FA_READ)) {
-
 		/* decode mp3 */
 
         decoder = mp3_decoder_create();
@@ -197,6 +288,8 @@ static uint32_t mp3_callback(MP3FrameInfo *header,
     while (audio_is_playing == 1);
 
     audio_is_playing = 1;
+    //myprintf("size %d\n", length);
+	//myprintf("size %d %d %d %d\n", buffer[100], buffer[101], buffer[102], buffer[103]);
     ProvideAudioBuffer(buffer, length);
 
     return 0;
@@ -206,16 +299,15 @@ static void play_mp3(char* filename) {
     struct mp3_decoder *decoder;
 
 	if (FR_OK == f_open(&file, filename, FA_OPEN_EXISTING | FA_READ)) {
-
 		/* Play mp3 */
 
 		InitializeAudio(Audio44100HzSettings);
-		SetAudioVolume(0xAF);
+		SetAudioVolume(0xBF);
 		PlayAudioWithCallback(AudioCallback);
 
         decoder = mp3_decoder_create();
         if (decoder != NULL) {
-          myprintf("dekoder utworzony\n");
+          //myprintf("dekoder utworzony\n");
             decoder->fetch_data         = fd_fetch;
             decoder->fetch_parameter    = (void *)&file;
             decoder->output_cb          = mp3_callback;
@@ -251,19 +343,25 @@ static const char *get_filename_ext(const char *filename) {
     return dot + 1;
 }
 
- static FRESULT play_directory (const char* path, unsigned char seek) {
+FRESULT play_directory (const char* path, unsigned char seek) {
 	FRESULT     res;
 	FILINFO     fno;
 	DIR         dir;
-
+//static void play_directory (const char* path, unsigned char seek) {
 
     /* This function is assuming non-Unicode cfg. */
 	char        *fn;
 	char        buffer[200];
+//#if _USE_LFN
+//	static char lfn[_MAX_LFN + 1];
+//
+//	fno.lfname  = lfn;
+//	fno.lfsize  = sizeof(lfn);
+//#endif
+
 
 	res = f_opendir(&dir, path);
 	if (res == FR_OK) {
-		myprintf("Wchodze do folderu\r\n");
 		for (;;) {
             /* Read a directory item */
 			res = f_readdir(&dir, &fno);
@@ -274,7 +372,11 @@ static const char *get_filename_ext(const char *filename) {
             /* Ignore dot entry */
 			if (fno.fname[0] == '.') continue;
 
+//        #if _USE_LFN
+//			fn = *fno.lfname ? fno.lfname : fno.fname;
+//        #else
 			fn = fno.fname;
+//        #endif
 			if (fno.fattrib & AM_DIR) {
                 /* It is a directory */
 
@@ -314,79 +416,6 @@ void myprintf(const char *fmt, ...) {
   int len = strlen(buffer);
   HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, -1);
 
-}
-
-void init_sd(){
-	  myprintf("\r\n~ SD card ~\r\n\r\n");
-
-	  HAL_Delay(1000); //a short delay is important to let the SD card settle
-
-	  //Open the file system
-	  fres = f_mount(&FatFs, "", 1); //1=mount now
-	  if (fres != FR_OK) {
-	  myprintf("f_mount errors (%i)\r\n", fres);
-	  //while(1);
-	  HAL_Delay(1000);
-	  }
-	  //Let's get some statistics from the SD card
-	  DWORD free_clusters, free_sectors, total_sectors;
-
-	  FATFS* getFreeFs;
-
-	  fres = f_getfree("", &free_clusters, &getFreeFs);
-	  if (fres != FR_OK) {
-	  myprintf("f_getfree error (%i)\r\n", fres);
-	  //while(1);
-	  HAL_Delay(1000);
-	  }
-
-	  //Formula comes from ChaN's documentation
-	  total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
-	  free_sectors = free_clusters * getFreeFs->csize;
-
-	  myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
-}
-
-void deinit_sd(){
-	f_mount(NULL, "", 0);
-}
-
-void test_open_file(){
-	  //Now let's try to open file "test.txt"
-
-	  fres = f_open(&file, "animals.mp3", FA_READ);
-	  if (fres != FR_OK) {
-	  myprintf("f_open error (%i)\r\n");
-	  //while(1);
-	  HAL_Delay(1000);
-	  }
-	  myprintf("I was able to open 'example.mp3' for reading!\r\n");
-
-	  //Read 30 bytes from "test.txt" on the SD card
-	  //BYTE readBuf[300];
-
-	  //We can either use f_read OR f_gets to get data out of files
-	  //f_gets is a wrapper on f_read that does some string formatting for us
-
-
-
-	  //FRESULT rres = f_read(&file, (void*)readBuf, 8192, (UINT*)&read_bytes);
-	  //TCHAR* rres = f_gets((TCHAR*)readBuf, 300, &fil);
-//	  if(rres == FR_OK) {
-//		  for(int i = 0; i < 128; i++)
-//		  {
-//			  for(int j = 0; j < 64; j++)
-//			  {
-//				  myprintf("0x%x ", readBuf[128*i+j]);
-//			  }
-//			  myprintf("\r\n");
-//		  }
-//	  } else {
-//	  myprintf("f_gets error (%i)\r\n", fres);
-//	  }
-
-	  //Be a tidy kiwi - don't forget to close your file!
-	  f_close(&file);
 }
 /* USER CODE END 0 */
 
@@ -432,28 +461,25 @@ int main(void)
 	//   audio_data[i * 2 + 1] = value;
   // }
 
-  // cs43l22_init();
 
-  myprintf("program started\n");
-  init_sd();
+  InitializePlayDirectory(play_directory);
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (1) {
-	  			enum_done = 0;
-	  			play_directory("", 0);
-	  		}
-	//HAL_Delay(2000);
-	 // HAL_I2S_Transmit(&hi2s3, (uint16_t*)audio_data, 2 * BUFFER_SIZE, HAL_MAX_DELAY);
-    //HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 }
@@ -495,7 +521,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
@@ -509,6 +535,27 @@ void SystemClock_Config(void)
 // void _kill(){}
 // void _getpid(){}
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

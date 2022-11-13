@@ -1,12 +1,12 @@
 /*
  * fatfs_sd_card.h
  *
- *  Created on: 5 lis 2022
- *      Author: Łukasz Zelek
+ *  Created on: Nov 12, 2022
+ *      Author: Lukasz
  */
 
-#ifndef INC_FATFS_SD_CARD_H_
-#define INC_FATFS_SD_CARD_H_
+#ifndef __FATFS_SD_H
+#define __FATFS_SD_H
 
 /* Definitions for MMC/SDC command */
 #define CMD0     (0x40+0)       /* GO_IDLE_STATE */
@@ -24,23 +24,26 @@
 #define CMD41    (0x40+41)      /* SEND_OP_COND (ACMD) */
 #define CMD55    (0x40+55)      /* APP_CMD */
 #define CMD58    (0x40+58)      /* READ_OCR */
+
 /* MMC card type flags (MMC_GET_TYPE) */
 #define CT_MMC    0x01    /* MMC ver 3 */
 #define CT_SD1    0x02    /* SD ver 1 */
 #define CT_SD2    0x04    /* SD ver 2 */
 #define CT_SDC    0x06    /* SD */
 #define CT_BLOCK  0x08    /* Block addressing */
+
 /* Functions */
 DSTATUS SD_disk_initialize (BYTE pdrv);
 DSTATUS SD_disk_status (BYTE pdrv);
 DRESULT SD_disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
 DRESULT SD_disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
 DRESULT SD_disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
+
 #define SPI_TIMEOUT 100
+
 extern SPI_HandleTypeDef  hspi1;
 #define HSPI_SDCARD     &hspi1
 #define SD_CS_PORT      GPIOB
 #define SD_CS_PIN     GPIO_PIN_7
 
-
-#endif /* INC_FATFS_SD_CARD_H_ */
+#endif
