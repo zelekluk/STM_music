@@ -16,6 +16,14 @@ set(INCLUDE_DIRS
 	Application/Audio 
 	Drivers/helix 
 	Drivers/helix/pub 
+	Drivers/CMSIS/DSP/Include
+	FATFS/Target 
+	FATFS/App 
+	Middlewares/Third_Party/FatFs/src 
+	Middlewares/Third_Party/FatFs/src/option
+	Middlewares/Third_Party/FreeRTOS/Source/include 
+	Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 
+	Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F 
 )
 
 set(C_SRCS
@@ -23,20 +31,296 @@ set(C_SRCS
 	Application/Audio/bpm.c
 	Application/Audio/fft.c
 	Application/Audio/mp3.c
-	Application/Audio/sonic.c
 	Application/Audio/play_i2s.c
+	Application/Audio/sonic.c
+	Application/FFT/arm_fft_bin_data.c
+	Application/FFT/fourier.c
 	Core/Src/dma.c
+	Core/Src/fatfs_sd_card.c
+	Core/Src/freertos.c
 	Core/Src/gpio.c
 	Core/Src/i2c.c
 	Core/Src/i2s.c
 	Core/Src/main.c
 	Core/Src/spi.c
 	Core/Src/stm32f4xx_hal_msp.c
+	Core/Src/stm32f4xx_hal_timebase_tim.c
 	Core/Src/stm32f4xx_it.c
 	Core/Src/syscalls.c
 	Core/Src/sysmem.c
 	Core/Src/system_stm32f4xx.c
 	Core/Src/usart.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_abs_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_abs_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_abs_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_abs_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_add_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_add_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_add_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_add_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_dot_prod_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_dot_prod_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_dot_prod_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_dot_prod_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_mult_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_mult_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_mult_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_mult_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_negate_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_negate_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_negate_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_negate_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_offset_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_offset_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_offset_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_offset_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_scale_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_scale_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_scale_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_scale_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_shift_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_shift_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_shift_q7.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_sub_f32.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_sub_q15.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_sub_q31.c
+	Drivers/CMSIS/Source/BasicMathFunctions/arm_sub_q7.c
+	Drivers/CMSIS/Source/CommonTables/arm_common_tables.c
+	Drivers/CMSIS/Source/CommonTables/arm_const_structs.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_conj_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_conj_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_conj_q31.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_dot_prod_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_dot_prod_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_dot_prod_q31.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_q31.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_squared_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_squared_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mag_squared_q31.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_cmplx_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_cmplx_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_cmplx_q31.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_real_f32.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_real_q15.c
+	Drivers/CMSIS/Source/ComplexMathFunctions/arm_cmplx_mult_real_q31.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_init_f32.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_init_q15.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_init_q31.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_reset_f32.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_reset_q15.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_pid_reset_q31.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_sin_cos_f32.c
+	Drivers/CMSIS/Source/ControllerFunctions/arm_sin_cos_q31.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_cos_f32.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_cos_q15.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_cos_q31.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_sin_f32.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_sin_q15.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_sin_q31.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_sqrt_q15.c
+	Drivers/CMSIS/Source/FastMathFunctions/arm_sqrt_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_32x64_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_32x64_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df1_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df2T_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df2T_f64.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df2T_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_df2T_init_f64.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_stereo_df2T_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_biquad_cascade_stereo_df2T_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_fast_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_opt_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_fast_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_opt_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_partial_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_conv_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_fast_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_opt_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_opt_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_correlate_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_decimate_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_fast_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_fast_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_init_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_interpolate_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_lattice_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_init_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_fir_sparse_q7.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_iir_lattice_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_init_f32.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_init_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_init_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_norm_q31.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_q15.c
+	Drivers/CMSIS/Source/FilteringFunctions/arm_lms_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_add_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_add_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_add_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_cmplx_mult_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_cmplx_mult_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_cmplx_mult_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_init_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_init_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_init_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_inverse_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_inverse_f64.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_mult_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_mult_fast_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_mult_fast_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_mult_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_mult_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_scale_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_scale_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_scale_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_sub_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_sub_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_sub_q31.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_trans_f32.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_trans_q15.c
+	Drivers/CMSIS/Source/MatrixFunctions/arm_mat_trans_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_max_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_max_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_max_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_max_q7.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_mean_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_mean_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_mean_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_mean_q7.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_min_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_min_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_min_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_min_q7.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_power_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_power_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_power_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_power_q7.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_rms_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_rms_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_rms_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_std_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_std_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_std_q31.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_var_f32.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_var_q15.c
+	Drivers/CMSIS/Source/StatisticsFunctions/arm_var_q31.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_copy_f32.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_copy_q15.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_copy_q31.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_copy_q7.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_fill_f32.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_fill_q15.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_fill_q31.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_fill_q7.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_float_to_q15.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_float_to_q31.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_float_to_q7.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q15_to_float.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q15_to_q31.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q15_to_q7.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q31_to_float.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q31_to_q15.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q31_to_q7.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q7_to_float.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q7_to_q15.c
+	Drivers/CMSIS/Source/SupportFunctions/arm_q7_to_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_bitreversal.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_init_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_init_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_init_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix2_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_init_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_init_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_init_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix4_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_cfft_radix8_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_init_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_init_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_init_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_dct4_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_fast_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_fast_init_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_init_f32.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_init_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_init_q31.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_q15.c
+	Drivers/CMSIS/Source/TransformFunctions/arm_rfft_q31.c
 	Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
 	Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
 	Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
@@ -60,16 +344,36 @@ set(C_SRCS
 	Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
 	Drivers/helix/mp3dec.c
 	Drivers/helix/mp3tabs.c
+	FATFS/App/fatfs.c
+	FATFS/Target/user_diskio.c
+	Middlewares/Third_Party/FatFs/src/diskio.c
+	Middlewares/Third_Party/FatFs/src/ff.c
+	Middlewares/Third_Party/FatFs/src/ff_gen_drv.c
+	Middlewares/Third_Party/FatFs/src/option/ccsbcs.c
+	Middlewares/Third_Party/FatFs/src/option/syscall.c
+	Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c
+	Middlewares/Third_Party/FreeRTOS/Source/croutine.c
+	Middlewares/Third_Party/FreeRTOS/Source/event_groups.c
+	Middlewares/Third_Party/FreeRTOS/Source/list.c
+	Middlewares/Third_Party/FreeRTOS/Source/queue.c
+	Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c
+	Middlewares/Third_Party/FreeRTOS/Source/tasks.c
+	Middlewares/Third_Party/FreeRTOS/Source/timers.c
+	Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
+	Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
 )
 
 set(ASM_SRCS
 	Core/Startup/startup_stm32f411vetx.s
+	Drivers/CMSIS/Source/TransformFunctions/arm_bitreversal2.S
 )
 
 set(GLOBAL_DEFINES
 	#-DDEBUG 
 	-DUSE_HAL_DRIVER 
 	-DSTM32F411xE 
+	-D__FPU_PRESENT
+	-DARM_MATH_CM4
 )
 
 set(LINKED_LIBS

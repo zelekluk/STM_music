@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 //static PlayDirectoryFunction *play_directory;
+#include "fourier.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +59,7 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t musicTaskHandle;
 const osThreadAttr_t musicTask_attributes = {
   .name = "musicTask",
-  .stack_size = 2048 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 
@@ -127,10 +128,12 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	myprintf("fourier status %d\n\r", process_fourier_transform());
+    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -147,8 +150,9 @@ void StartMusicTask(void *argument)
   /* USER CODE BEGIN StartMusicTask */
 
   // do some initializing
-  myprintf("program started\n");
+  myprintf("program started\n\r");
   init_sd();
+
 
   /* Infinite loop */
   for(;;)

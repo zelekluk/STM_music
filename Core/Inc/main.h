@@ -65,6 +65,7 @@ void Error_Handler(void);
 #define SD_CS_Pin GPIO_PIN_7
 #define SD_CS_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+
 #define SD_SPI_HANDLE hspi1
 extern int mp3_buffer_counter;
 // types for bpm.h and bpm.c
