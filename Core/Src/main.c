@@ -24,6 +24,7 @@
 #include "i2c.h"
 #include "i2s.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -38,6 +39,11 @@
 #include "mp3dec.h"
 #include "mp3.h"
 #include "test_file.h"
+
+// wyswietlacz lcd
+#include "ST7920_SERIAL.h"
+#include "delay.h"
+#include "bitmap.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -443,7 +449,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   /* FPU initialization */
-  	SCB->CPACR |= ((3 << 10*2)|(3 << 11*2));
+  	//SCB->CPACR |= ((3 << 10*2)|(3 << 11*2));
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -454,7 +460,15 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_FATFS_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+
+  delay_init();
+
+  ST7920_Init();
+
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
   // for (int i = 0; i < BUFFER_SIZE; i++) {
 	//   int16_t value = (int16_t)(32000.0 * sin(2.0 * M_PI * i / 22.0));
@@ -531,7 +545,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-// void _init(){}
+//void _init(){}
 // void _exit(){}
 // void _kill(){}
 // void _getpid(){}

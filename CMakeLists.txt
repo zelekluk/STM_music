@@ -14,6 +14,7 @@ set(INCLUDE_DIRS
 	Drivers/CMSIS/Device/ST/STM32F4xx/Include 
 	Drivers/CMSIS/Include 
 	Application/Audio 
+	Application/FFT
 	Drivers/helix 
 	Drivers/helix/pub 
 	Drivers/CMSIS/DSP/Include
