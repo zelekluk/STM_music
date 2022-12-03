@@ -28,6 +28,7 @@
 //static PlayDirectoryFunction *play_directory;
 #include "fourier.h"
 #include "tim.h"
+#include "Audio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,14 +48,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+volatile char buffer[5];
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 2500 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for musicTask */
 osThreadId_t musicTaskHandle;
@@ -98,7 +99,23 @@ void Task2_init(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* Hook prototypes */
+void vApplicationIdleHook(void);
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
+
+/* USER CODE BEGIN 2 */
+void vApplicationIdleHook( void )
+{
+   /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
+   to 1 in FreeRTOSConfig.h. It will be called on each iteration of the idle
+   task. It is essential that code added to this hook function never attempts
+   to block in any way (for example, call xQueueReceive() with a block time
+   specified, or call vTaskDelay()). If the application makes use of the
+   vTaskDelete() API function (as this demo application does) then it is also
+   important that vApplicationIdleHook() is permitted to return to its calling
+   function, because it is the responsibility of the idle task to clean up
+   memory allocated by the kernel to any task that has since been deleted. */
+}
+/* USER CODE END 2 */
 
 /* USER CODE BEGIN 4 */
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
@@ -172,11 +189,21 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+	UBaseType_t uxHighWaterMark;
+
+	        /* Inspect our own high water mark on entering the task. */
+		uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+	  myprintf("watermark bytes unused %d sin %f\n\r",uxHighWaterMark*4, arm_sin_f32(M_PI/6));
+	osDelay(1000);
+	myprintf("fourier status %d\n\r", process_fourier_transform());
+	osDelay(1000);
 
   /* Infinite loop */
   for(;;)
   {
-	myprintf("fourier status %d\n\r", process_fourier_transform());
+	  uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+	  myprintf("fourier status %d\n\r", process_fourier_transform());
+	  myprintf("watermark bytes unused %d sin %f\n\r",uxHighWaterMark*4, arm_sin_f32(M_PI/6));
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
@@ -224,13 +251,15 @@ void Task1_init(void *argument)
   {
 	osDelay(100);
 //    ST7920_Clear();
-	if(cnt_1%44 == 22){
-		osSemaphoreAcquire(SimpleMutexHandle, 1);
-	  ST7920_SendString(0,0, "Task1!");
-	  osSemaphoreRelease(SimpleMutexHandle);
-	  }
-	cnt_1 = cnt_1>43?0:cnt_1;
-	cnt_1++;
+//	if(cnt_1%44 == 22){
+//		osSemaphoreAcquire(SimpleMutexHandle, 1);
+//		  ST7920_SendString(0,0, "Task1!");
+//		  myprintf("wyswietlacz\n");
+//		  osSemaphoreRelease(SimpleMutexHandle);
+//	  }
+//	cnt_1 = cnt_1>43?0:cnt_1;
+//	cnt_1++;
+	SetAudioVolume(180);
   }
   /* USER CODE END Task1_init */
 }
@@ -253,10 +282,9 @@ void Task2_init(void *argument)
 
   ST7920_Init();
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
-	volatile char buffer[4];
+
 	static int cnt_2 = 0;
 	static volatile uint8_t prev = 0;
-	char buf[5];
 	buffer[4] = '\0';
   /* Infinite loop */
   for(;;)
@@ -268,20 +296,27 @@ void Task2_init(void *argument)
 	  osSemaphoreRelease(SimpleMutexHandle);
 	  }
 
-
 	  cnt_2 = cnt_2>43?0:cnt_2;
-	  if(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9)){
-		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  if(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3)){
+		  HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 		  htim2.Instance->CNT = 0;
+		  //myprintf("fourier status %d\n\r", process_fourier_transform());
+		  //myprintf("%f\n\r", arm_sin_f32(M_PI/6));
 	  }
+
 	  snprintf(buffer, 4, "%d", htim2.Instance->CNT);
+	  //SetAudioVolume((htim2.Instance->CNT * 255)/1000);
 	  if(prev!= htim2.Instance->CNT){
+		  osSemaphoreAcquire(SimpleMutexHandle, 1);
 		  ST7920_SendString(2,0, "000");
 		  ST7920_SendString(2,0, buffer);
+		  osSemaphoreRelease(SimpleMutexHandle);
 		  prev = htim2.Instance->CNT;
 	  }
+
 	  cnt_2++;
 	  osDelay(100);
+	  //myprintf("counter val %d\n",htim2.Instance->CNT);
   }
   /* USER CODE END Task2_init */
 }

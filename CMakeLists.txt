@@ -366,7 +366,6 @@ set(C_SRCS
 
 set(ASM_SRCS
 	Core/Startup/startup_stm32f411vetx.s
-	Drivers/CMSIS/Source/TransformFunctions/arm_bitreversal2.S
 )
 
 set(GLOBAL_DEFINES

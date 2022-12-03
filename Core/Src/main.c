@@ -97,7 +97,7 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN 0 */
 
 void init_sd(){
-	myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
+	//myprintf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
 
 	  HAL_Delay(1000); //a short delay is important to let the SD card settle
 
@@ -125,7 +125,7 @@ void init_sd(){
 	  total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
 	  free_sectors = free_clusters * getFreeFs->csize;
 
-	  myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
+	  //myprintf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
 
 //	  //Now let's try to open file "test.txt"
 //	  fres = f_open(&fil, "test.txt", FA_READ);
@@ -313,7 +313,7 @@ static void play_mp3(char* filename) {
 
         decoder = mp3_decoder_create();
         if (decoder != NULL) {
-          //myprintf("dekoder utworzony\n");
+          myprintf("dekoder utworzony\n");
             decoder->fetch_data         = fd_fetch;
             decoder->fetch_parameter    = (void *)&file;
             decoder->output_cb          = mp3_callback;
@@ -398,7 +398,7 @@ FRESULT play_directory (const char* path, unsigned char seek) {
 						seek--;
 						continue;
 					}
-
+					myprintf("play %s\n\r", buffer);
 					//mp3_get_bpm(buffer);
 					play_mp3(buffer);
 				}
@@ -462,6 +462,7 @@ int main(void)
   MX_FATFS_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
   delay_init();

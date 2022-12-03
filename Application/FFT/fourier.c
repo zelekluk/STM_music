@@ -118,7 +118,7 @@ uint32_t refIndex = 213, testIndex = 0;
 * Max magnitude FFT Bin test
 * ------------------------------------------------------------------- */
 
-int32_t process_fourier_transform(void)
+uint32_t process_fourier_transform(void)
 {
 
   arm_status status;
@@ -135,7 +135,7 @@ int32_t process_fourier_transform(void)
 
   /* Calculates maxValue and returns corresponding BIN value */
   arm_max_f32(testOutput, fftSize, &maxValue, &testIndex);
-
+//  return testIndex;
   if (testIndex !=  refIndex)
   {
     status = ARM_MATH_TEST_FAILURE;
@@ -151,8 +151,8 @@ int32_t process_fourier_transform(void)
     return 1;
   }
   return 0;
-//
-//  while (1);                             /* main function does not return */
+
+  while (1);                             /* main function does not return */
 }
 
  /** \endlink */

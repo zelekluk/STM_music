@@ -8,6 +8,7 @@
 #include "stm32f4xx_hal.h"
 #include "ST7920_SERIAL.h"
 #include "delay.h"
+#include "spi.h"
 
 /* setup below is as follows
  * A5 ---------> SCLK (EN)
@@ -38,23 +39,24 @@ uint8_t image[(128 * 64)/8];
 
 void SendByteSPI(uint8_t byte)
 {
-	for(int i=0;i<8;i++)
-	{
-		if((byte<<i)&0x80)
-			{
-				HAL_GPIO_WritePin(SID_PORT, SID_PIN, GPIO_PIN_SET);  // SID=1  OR MOSI
-			}
+	uint8_t data[1] = {byte};
+//	for(int i=0;i<8;i++)
+//	{
+//		if((byte<<i)&0x80)
+//			{
+//				HAL_GPIO_WritePin(SID_PORT, SID_PIN, GPIO_PIN_SET);  // SID=1  OR MOSI
+//			}
+//
+//		else HAL_GPIO_WritePin(SID_PORT, SID_PIN, GPIO_PIN_RESET);  // SID=0
+//
+//		HAL_GPIO_WritePin(SCLK_PORT, SCLK_PIN, GPIO_PIN_RESET);  // SCLK =0  OR SCK
+//
+//		HAL_GPIO_WritePin(SCLK_PORT, SCLK_PIN, GPIO_PIN_SET);  // SCLK=1
+// }
+	HAL_SPI_Transmit_DMA(&hspi2, data, 1);
+	delay_us(30); // calculated
 
-		else HAL_GPIO_WritePin(SID_PORT, SID_PIN, GPIO_PIN_RESET);  // SID=0
-
-		HAL_GPIO_WritePin(SCLK_PORT, SCLK_PIN, GPIO_PIN_RESET);  // SCLK =0  OR SCK
-
-		HAL_GPIO_WritePin(SCLK_PORT, SCLK_PIN, GPIO_PIN_SET);  // SCLK=1
-
-	}
 }
-
-
 
 
 void ST7920_SendCmd (uint8_t cmd)
