@@ -63,7 +63,6 @@ static uint8_t audio_data[2 * BUFFER_SIZE];
 
 //some variables for FatFs
 FATFS FatFs; 	//Fatfs handle
-FIL fil; 		//File handle
 FRESULT fres; //Result after operations
 
 /* USER CODE END PD */
@@ -84,6 +83,8 @@ static volatile uint8_t     audio_is_playing = 0;
 /* just for test */
 extern float                cur_ratio;
 static uint16_t             cur_bpm = 0;
+char playing_title[34];
+uint8_t stop_mp3 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -301,7 +302,7 @@ static uint32_t mp3_callback(MP3FrameInfo *header,
     return 0;
 }
 
-static void play_mp3(char* filename) {
+void play_mp3(char* filename) {
     struct mp3_decoder *decoder;
 
 	if (FR_OK == f_open(&file, filename, FA_OPEN_EXISTING | FA_READ)) {
@@ -319,8 +320,8 @@ static void play_mp3(char* filename) {
             decoder->output_cb          = mp3_callback;
 
             //while (mp3_decoder_run(decoder) != -1);
-            while (mp3_decoder_run_pvc(decoder) != -1);
-
+            while (mp3_decoder_run_pvc(decoder) != -1 && stop_mp3 != 1);
+            stop_mp3 = 0;
             /* delete decoder object */
             mp3_decoder_delete(decoder);
             myprintf("koniec mp3\n");
@@ -388,6 +389,7 @@ FRESULT play_directory (const char* path, unsigned char seek) {
 
 			} else {
                 /* It is a file. */
+				sprintf(buffer,"                                \0");
 				sprintf(buffer, "%s/%s", path, fn);
 
 				/* Check if it is an mp3 file */
@@ -399,6 +401,8 @@ FRESULT play_directory (const char* path, unsigned char seek) {
 						continue;
 					}
 					myprintf("play %s\n\r", buffer);
+					snprintf(playing_title,17, "%s", buffer+1);
+					snprintf(playing_title+17,17, "%s", buffer+17);
 					//mp3_get_bpm(buffer);
 					play_mp3(buffer);
 				}

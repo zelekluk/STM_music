@@ -80,6 +80,8 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 void myprintf(const char *fmt, ...);
 typedef void PlayDirectoryFunction(void);
+extern char playing_title[34];
+extern uint8_t stop_mp3;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
