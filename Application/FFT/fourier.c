@@ -118,7 +118,7 @@ uint32_t refIndex = 213, testIndex = 0;
 * Max magnitude FFT Bin test
 * ------------------------------------------------------------------- */
 
-uint32_t process_fourier_transform(void)
+uint32_t process_fourier_transform(float32_t *testInput_f32_10khz)
 {
 
   arm_status status;

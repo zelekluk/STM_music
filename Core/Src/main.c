@@ -60,7 +60,7 @@ int mp3_buffer_counter = 0;
 #define BUFFER_SIZE		4096
 
 static uint8_t audio_data[2 * BUFFER_SIZE];
-static uint8_t output_audio_data[2 * BUFFER_SIZE];
+
 //some variables for FatFs
 FATFS FatFs; 	//Fatfs handle
 FIL fil; 		//File handle
