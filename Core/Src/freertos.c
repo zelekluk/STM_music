@@ -477,15 +477,15 @@ void StartDefaultTask(void *argument)
 	  uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
 	  //myprintf("fourier status %d\n\r", process_fourier_transform(testInput_f32_10khz));
 	//  myprintf("watermark bytes unused %d sin %f\n\r",uxHighWaterMark*4, arm_sin_f32(M_PI/6));
-	  arm_status status;
-	  float32_t maxValue;
-
-	  status = ARM_MATH_SUCCESS;
-
-	  /* Process the data through the CFFT/CIFFT module */
-	  arm_cfft_f32(&arm_cfft_sR_f32_len1024, testInput_f32_10khz, ifftFlag, doBitReverse);
-
-	  /* Process the data through the Complex Magnitude Module for
+//	  arm_status status;
+//	  float32_t maxValue;
+//
+//	  status = ARM_MATH_SUCCESS;
+//
+//	  /* Process the data through the CFFT/CIFFT module */
+	  //arm_cfft_f32(&arm_cfft_sR_f32_len1024, testInput_f32_10khz, ifftFlag, doBitReverse);
+//
+//	  /* Process the data through the Complex Magnitude Module for
 //	  calculating the magnitude at each bin */
 //	  arm_cmplx_mag_f32(testInput_f32_10khz, testOutput, fftSize);
 //
@@ -496,6 +496,7 @@ void StartDefaultTask(void *argument)
 //	  {
 //	    status = ARM_MATH_TEST_FAILURE;
 //	  }
+	 // arm_rfft_fast_f32(&arm_rfft_fast_instance_f32,  , testOutput);
 	  myprintf("fourier status %d\n\r", status);
 
     osDelay(1000);
