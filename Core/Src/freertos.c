@@ -29,6 +29,7 @@
 #include "fourier.h"
 #include "tim.h"
 #include "Audio.h"
+#include "ST7920_SERIAL.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +49,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-volatile char buffer[17];
+char buffer[17];
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -497,7 +498,7 @@ void StartDefaultTask(void *argument)
 //	    status = ARM_MATH_TEST_FAILURE;
 //	  }
 	 // arm_rfft_fast_f32(&arm_rfft_fast_instance_f32,  , testOutput);
-	  myprintf("fourier status %d\n\r", status);
+	  //myprintf("fourier status %d\n\r", status);
 
     osDelay(1000);
   }
@@ -577,6 +578,9 @@ void Task1_init(void *argument)
 }
 
 /* USER CODE BEGIN Header_Task2_init */
+
+
+
 /**
 * @brief Function implementing the Task_2 thread.
 * @param argument: Not used
@@ -626,8 +630,24 @@ void Task2_init(void *argument)
 		  SetAudioVolume((htim2.Instance->CNT * 255)/1000);
 		  osSemaphoreAcquire(SimpleMutexHandle, 1);
 		  //ST7920_SendString(3,0, "000");
-		  ST7920_SendString(3,0, buffer);
+		  ST7920_SendString(3, 0, buffer);
+
+
 		  osSemaphoreRelease(SimpleMutexHandle);
+
+
+//		  osSemaphoreAcquire(SimpleMutexHandle, 1);
+//		  ST7920_GraphicMode(1);
+//		  osSemaphoreRelease(SimpleMutexHandle);
+
+		  osSemaphoreAcquire(SimpleMutexHandle, 1);
+		  DrawFilledRectangle(1,1,1,1);
+		  ST7920_DrawBitmap(&image);
+		  osSemaphoreRelease(SimpleMutexHandle);
+
+//		  osSemaphoreAcquire(SimpleMutexHandle, 1);
+//		  ST7920_GraphicMode(0);
+//		  osSemaphoreRelease(SimpleMutexHandle);
 
 		  prev = htim2.Instance->CNT;
 	  }

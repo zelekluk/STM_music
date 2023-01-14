@@ -55,7 +55,7 @@ void SendByteSPI(uint8_t byte)
 // }
 	HAL_SPI_Transmit_DMA(&hspi2, data, 1);
 	delay_us(30); // calculated
-
+	//osDelay(1);
 }
 
 
@@ -68,9 +68,30 @@ void ST7920_SendCmd (uint8_t cmd)
 	SendByteSPI(cmd&0xf0);  // send the higher nibble first
 	SendByteSPI((cmd<<4)&0xf0);  // send the lower nibble
 	delay_us(50);
-
+//	osDelay(1);
 	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);  // PUll the CS LOW
 
+}
+
+void ST7920_GraphicMode (int enable)   // 1-enable, 0-disable
+{
+	if (enable == 1)
+	{
+		ST7920_SendCmd(0x30);  // 8 bit mode
+		osDelay (1);
+		ST7920_SendCmd(0x34);  // switch to Extended instructions
+		osDelay (1);
+		ST7920_SendCmd(0x36);  // enable graphics
+		osDelay (1);
+		Graphic_Check = 1;  // update the variable
+	}
+
+	else if (enable == 0)
+	{
+		ST7920_SendCmd(0x30);  // 8 bit mode
+		osDelay (1);
+		Graphic_Check = 0;  // update the variable
+	}
 }
 
 void ST7920_SendData (uint8_t data)
@@ -81,7 +102,7 @@ void ST7920_SendData (uint8_t data)
 	SendByteSPI(0xf8+(1<<1));  // send the SYNC + RS(1)
 	SendByteSPI(data&0xf0);  // send the higher nibble first
 	SendByteSPI((data<<4)&0xf0);  // send the lower nibble
-	delay_us(50);
+	//delay_us(50);
 	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);  // PUll the CS LOW
 }
 
@@ -118,26 +139,7 @@ void ST7920_SendString(int row, int col, char* string)
 
 // switch to graphic mode or normal mode::: enable = 1 -> graphic mode enable = 0 -> normal mode
 
-void ST7920_GraphicMode (int enable)   // 1-enable, 0-disable
-{
-	if (enable == 1)
-	{
-		ST7920_SendCmd(0x30);  // 8 bit mode
-		HAL_Delay (1);
-		ST7920_SendCmd(0x34);  // switch to Extended instructions
-		HAL_Delay (1);
-		ST7920_SendCmd(0x36);  // enable graphics
-		HAL_Delay (1);
-		Graphic_Check = 1;  // update the variable
-	}
 
-	else if (enable == 0)
-	{
-		ST7920_SendCmd(0x30);  // 8 bit mode
-		HAL_Delay (1);
-		Graphic_Check = 0;  // update the variable
-	}
-}
 
 void ST7920_DrawBitmap(const unsigned char* graphic)
 {
@@ -205,7 +207,7 @@ void ST7920_Clear()
 	else
 	{
 		ST7920_SendCmd(0x01);   // clear the display using command
-		HAL_Delay(2); // delay >1.6 ms
+		osDelay(2); // delay >1.6 ms
 	}
 }
 

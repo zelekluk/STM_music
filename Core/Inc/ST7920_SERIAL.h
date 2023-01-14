@@ -4,7 +4,7 @@
 
 #include "stdint.h"
 
-//uint8_t image[(128 * 64)/8];
+extern uint8_t image[(128 * 64)/8];
 
 // A replacement for SPI_TRANSMIT
 void SendByteSPI(uint8_t byte);
